@@ -46,6 +46,19 @@ func (app *App) UserRouter() {
 	app.Router.POST("/auth", userHandler.Login)
 }
 
+func (app *App) CartRouter() {
+	cartHandler := handler.CartHandler{
+		CartService: &service.CartService{},
+	}
+
+	cartRoute := app.Router.Group("/cart")
+	{
+		cartRoute.POST("/add", cartHandler.AddItem)
+		cartRoute.DELETE("/remove", cartHandler.RemoveItem)
+		cartRoute.POST("/checkout", cartHandler.Checkout)
+	}
+}
+
 func main() {
 	app := &App{
 		Logger: log.Default(),
@@ -55,6 +68,7 @@ func main() {
 
 	app.ProductRouter()
 	app.UserRouter()
+	app.CartRouter()
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", app.Config.Port),
