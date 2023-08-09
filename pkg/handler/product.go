@@ -6,16 +6,12 @@ import (
 	"df-ecomm/pkg/model"
 )
 
-type ProductHandler struct {
-	ProductService model.ProductService
-}
-
-func (h *ProductHandler) GetAllProducts(c *gin.Context) {
-	products := h.ProductService.GetAll()
+func (h *Handler) GetAllProducts(c *gin.Context) {
+	products := h.Product.GetAll()
 	c.JSON(200, products)
 }
 
-func (h *ProductHandler) AddNewProduct(c *gin.Context) {
+func (h *Handler) AddNewProduct(c *gin.Context) {
 	var newProduct model.NewProduct
 	if err := c.BindJSON(&newProduct); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -27,11 +23,11 @@ func (h *ProductHandler) AddNewProduct(c *gin.Context) {
 		return
 	}
 
-	createdProduct := h.ProductService.Create(newProduct)
+	createdProduct := h.Product.Create(newProduct)
 	c.JSON(201, createdProduct)
 }
 
-func (h *ProductHandler) UpdateProductById(c *gin.Context) {
+func (h *Handler) UpdateProductById(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid product id"})
@@ -49,7 +45,7 @@ func (h *ProductHandler) UpdateProductById(c *gin.Context) {
 		return
 	}
 
-	updatedProduct, err := h.ProductService.UpdateById(productId, updateProduct)
+	updatedProduct, err := h.Product.UpdateById(productId, updateProduct)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -57,14 +53,14 @@ func (h *ProductHandler) UpdateProductById(c *gin.Context) {
 	c.JSON(200, updatedProduct)
 }
 
-func (h *ProductHandler) RemoveProductById(c *gin.Context) {
+func (h *Handler) RemoveProductById(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(400, gin.H{"error": "Invalid product id"})
 		return
 	}
 
-	if err := h.ProductService.DeleteById(productId); err != nil {
+	if err := h.Product.DeleteById(productId); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}

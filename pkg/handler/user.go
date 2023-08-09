@@ -6,18 +6,14 @@ import (
 	"df-ecomm/pkg/model"
 )
 
-type UserHandler struct {
-	UserService model.UserService
-}
-
-func (h *UserHandler) Login(c *gin.Context) {
+func (h *Handler) Login(c *gin.Context) {
 	var account model.Account
 	if err := c.BindJSON(&account); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	user, err := h.UserService.Login(account)
+	user, err := h.User.Login(account, h.Config.SecretKey)
 	if err != nil {
 		c.JSON(401, gin.H{"error": err.Error()})
 		return

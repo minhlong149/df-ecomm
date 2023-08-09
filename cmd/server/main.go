@@ -12,7 +12,6 @@ import (
 
 	"df-ecomm/pkg/handler"
 	"df-ecomm/pkg/middleware"
-	"df-ecomm/pkg/service"
 	"df-ecomm/pkg/util"
 )
 
@@ -22,40 +21,25 @@ type App struct {
 	Config util.Config
 }
 
-func (app *App) ProductRouter() {
-	productHandler := handler.ProductHandler{
-		ProductService: &service.ProductService{},
-	}
+func (app *App) SetupRouter() {
+	handler := handler.Setup(app.Logger, app.Config)
 
 	productsRoute := app.Router.Group("/products")
 	productsRoute.Use(middleware.Authenticated(app.Config.SecretKey))
 	{
-		productsRoute.GET("/", productHandler.GetAllProducts)
-		productsRoute.POST("/", productHandler.AddNewProduct)
-		productsRoute.PUT("/:id", productHandler.UpdateProductById)
-		productsRoute.DELETE("/:id", productHandler.RemoveProductById)
+		productsRoute.GET("", handler.GetAllProducts)
+		productsRoute.POST("", handler.AddNewProduct)
+		productsRoute.PUT("/:id", handler.UpdateProductById)
+		productsRoute.DELETE("/:id", handler.RemoveProductById)
 	}
-}
 
-func (app *App) UserRouter() {
-	userHandler := handler.UserHandler{
-		UserService: &service.UserService{
-			SecretKey: app.Config.SecretKey,
-		},
-	}
-	app.Router.POST("/auth", userHandler.Login)
-}
-
-func (app *App) CartRouter() {
-	cartHandler := handler.CartHandler{
-		CartService: &service.CartService{},
-	}
+	app.Router.POST("/auth", handler.Login)
 
 	cartRoute := app.Router.Group("/cart")
 	{
-		cartRoute.POST("/add", cartHandler.AddItem)
-		cartRoute.DELETE("/remove", cartHandler.RemoveItem)
-		cartRoute.POST("/checkout", cartHandler.Checkout)
+		cartRoute.POST("/add", handler.AddItem)
+		cartRoute.DELETE("/remove", handler.RemoveItem)
+		cartRoute.POST("/checkout", handler.Checkout)
 	}
 }
 
@@ -66,9 +50,7 @@ func main() {
 		Config: util.LoadConfig(),
 	}
 
-	app.ProductRouter()
-	app.UserRouter()
-	app.CartRouter()
+	app.SetupRouter()
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", app.Config.Port),
@@ -76,6 +58,7 @@ func main() {
 	}
 
 	go func() {
+		app.Logger.Printf("Server listening on port %s\n", app.Config.Port)
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 			app.Logger.Fatalf("Listen: %s", err)
 		}

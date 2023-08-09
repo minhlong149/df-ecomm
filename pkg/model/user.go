@@ -10,6 +10,3 @@ type User struct {
 	Token    string `json:"token"`
 }
 
-type UserService interface {
-	Login(Account) (User, error)
-}

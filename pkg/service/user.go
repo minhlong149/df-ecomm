@@ -5,18 +5,12 @@ import (
 	"df-ecomm/pkg/util"
 )
 
-type Account = model.Account
-
-type UserService struct {
-	SecretKey string
-}
-
-func (s *UserService) Login(account Account) (model.User, error) {
+func (r *Repository) Login(account model.Account, secretKey string) (model.User, error) {
 	var claims = map[string]interface{}{
 		"username": account.Username,
 	}
 
-	token, err := util.CreateToken(claims, s.SecretKey)
+	token, err := util.CreateToken(claims, secretKey)
 	if err != nil {
 		return model.User{}, err
 	}

@@ -1,5 +1,11 @@
 package util
 
+import (
+	"os"
+
+	_ "github.com/joho/godotenv/autoload"
+)
+
 type Config struct {
 	SecretKey string
 	Port      string
@@ -7,7 +13,7 @@ type Config struct {
 
 func LoadConfig() Config {
 	return Config{
-		SecretKey: "secret",
-		Port:      "8080",
+		SecretKey: os.Getenv("SECRET_KEY"),
+		Port:      os.Getenv("PORT"),
 	}
 }

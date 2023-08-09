@@ -2,16 +2,12 @@ package service
 
 import "df-ecomm/pkg/model"
 
-type ItemToAdd = model.ItemToAdd
-
-type CartService struct{}
-
-var cart = []ItemToAdd{
+var cart = []model.ItemToAdd{
 	{ProductId: 1, Quantity: 1},
 	{ProductId: 2, Quantity: 2},
 }
 
-func (s *CartService) AddItem(newItem ItemToAdd) (model.CartItem, error) {
+func (r *Repository) Add(newItem model.ItemToAdd) (model.CartItem, error) {
 	foundProduct := model.Product{}
 	for _, product := range products {
 		if product.Id == newItem.ProductId {
@@ -41,7 +37,7 @@ func (s *CartService) AddItem(newItem ItemToAdd) (model.CartItem, error) {
 	}, nil
 }
 
-func (s *CartService) RemoveItem(item model.ItemToRemove) error {
+func (r *Repository) Remove(item model.ItemToRemove) error {
 	for i := range cart {
 		if cart[i].ProductId == item.ProductId {
 			cart = append(cart[:i], cart[i+1:]...)
@@ -51,7 +47,7 @@ func (s *CartService) RemoveItem(item model.ItemToRemove) error {
 	return model.ErrNotFound
 }
 
-func (s *CartService) Checkout() model.Receipt {
+func (s *Repository) Checkout() model.Receipt {
 	receipt := model.Receipt{
 		Items: []model.CartItem{},
 		Total: 0,
@@ -69,6 +65,6 @@ func (s *CartService) Checkout() model.Receipt {
 		}
 	}
 
-	cart = []ItemToAdd{}
+	cart = []model.ItemToAdd{}
 	return receipt
 }

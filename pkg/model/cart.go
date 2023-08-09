@@ -18,9 +18,3 @@ type Receipt struct {
 	Items []CartItem `json:"cart"`
 	Total int         `json:"total"`
 }
-
-type CartService interface {
-	AddItem(ItemToAdd) (CartItem, error)
-	RemoveItem(ItemToRemove) error
-	Checkout() Receipt
-}

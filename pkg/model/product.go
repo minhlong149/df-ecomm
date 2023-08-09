@@ -11,9 +11,4 @@ type NewProduct struct {
 	Price int    `json:"price" binding:"required"`
 }
 
-type ProductService interface {
-	GetAll() []Product
-	Create(NewProduct) Product
-	UpdateById(int, Product) (Product, error)
-	DeleteById(int) error
-}
+
