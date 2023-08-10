@@ -1,20 +1,7 @@
 package model
 
-type ItemToAdd struct {
-	ProductId int `json:"id" binding:"required"`
-	Quantity  int `json:"quantity" binding:"required"`
-}
-
-type ItemToRemove struct {
-	ProductId int `json:"id" binding:"required"`
-}
-
 type CartItem struct {
-	Product  Product `json:"product"`
-	Quantity int     `json:"quantity"`
-}
-
-type Receipt struct {
-	Items []CartItem `json:"cart"`
-	Total int         `json:"total"`
+	ProductId uint    `json:"-" gorm:"primaryKey"`
+	Product   Product `json:"product" gorm:"constraint:OnDelete:CASCADE;"`
+	Quantity  uint    `json:"quantity"`
 }

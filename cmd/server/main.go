@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 
 	"df-ecomm/pkg/handler"
 	"df-ecomm/pkg/middleware"
@@ -16,13 +16,16 @@ import (
 )
 
 type App struct {
-	Logger *log.Logger
+	Db     *gorm.DB
 	Router *gin.Engine
+	Logger util.Logger
 	Config util.Config
 }
 
 func (app *App) SetupRouter() {
-	handler := handler.Setup(app.Logger, app.Config)
+	handler := handler.Setup(app.Logger, app.Config, app.Db)
+
+	app.Router.Use(middleware.ErrorHandler(app.Logger))
 
 	productsRoute := app.Router.Group("/products")
 	productsRoute.Use(middleware.Authenticated(app.Config.SecretKey))
@@ -45,11 +48,12 @@ func (app *App) SetupRouter() {
 
 func main() {
 	app := &App{
-		Logger: log.Default(),
 		Router: gin.Default(),
+		Logger: util.SetupLogger(),
 		Config: util.LoadConfig(),
 	}
 
+	app.Db = util.SetupDB(app.Config)
 	app.SetupRouter()
 
 	srv := &http.Server{
@@ -58,9 +62,9 @@ func main() {
 	}
 
 	go func() {
-		app.Logger.Printf("Server listening on port %s\n", app.Config.Port)
+		app.Logger.Info("Server listening on port %s\n", app.Config.Port)
 		if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-			app.Logger.Fatalf("Listen: %s", err)
+			app.Logger.Error("Listen: %s", err)
 		}
 	}()
 
@@ -69,6 +73,6 @@ func main() {
 	<-sigint
 
 	if err := srv.Shutdown(context.Background()); err != nil {
-		app.Logger.Fatalf("Server shutdown: %s\n", err)
+		app.Logger.Error("Server shutdown: %s\n", err)
 	}
 }

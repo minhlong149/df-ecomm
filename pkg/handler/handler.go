@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"log"
+	"gorm.io/gorm"
 
 	"df-ecomm/pkg/service"
 	"df-ecomm/pkg/util"
@@ -9,14 +9,14 @@ import (
 
 type Handler struct {
 	Config  util.Config
-	Logger  *log.Logger
+	Logger  util.Logger
 	Product service.ProductService
 	Cart    service.CartService
 	User    service.UserService
 }
 
-func Setup(logger *log.Logger, config util.Config) *Handler {
-	repository := &service.Repository{}
+func Setup(logger util.Logger, config util.Config, dataSource *gorm.DB) *Handler {
+	repository := &service.Repository{Db: dataSource}
 	return &Handler{
 		Logger:  logger,
 		Config:  config,

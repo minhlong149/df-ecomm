@@ -2,67 +2,71 @@ package handler
 
 import (
 	"strconv"
+
 	"github.com/gin-gonic/gin"
+
 	"df-ecomm/pkg/model"
 )
 
 func (h *Handler) GetAllProducts(c *gin.Context) {
-	products := h.Product.GetAll()
-	c.JSON(200, products)
+	products, err := h.Product.GetAll()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	c.JSON(200, gin.H{"products": products})
 }
 
 func (h *Handler) AddNewProduct(c *gin.Context) {
-	var newProduct model.NewProduct
-	if err := c.BindJSON(&newProduct); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	var newProduct model.Product
+	if err := c.ShouldBindJSON(&newProduct); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidProduct.Error()})
 		return
 	}
 
-	if newProduct.Price < 0 {
-		c.JSON(400, gin.H{"error": "Price must be greater than 0"})
+	createdProduct, err := h.Product.Create(newProduct)
+	if err != nil {
+		c.Error(err)
 		return
 	}
 
-	createdProduct := h.Product.Create(newProduct)
-	c.JSON(201, createdProduct)
+	c.JSON(201, gin.H{"product": createdProduct})
 }
 
 func (h *Handler) UpdateProductById(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid product id"})
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidProductId.Error()})
 		return
 	}
 
-	var updateProduct model.Product
-	if err := c.BindJSON(&updateProduct); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	var productToUpdate model.Product
+	if err := c.ShouldBindJSON(&productToUpdate); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidProduct.Error()})
 		return
 	}
 
-	if updateProduct.Price < 0 {
-		c.JSON(400, gin.H{"error": "Price must be greater than 0"})
-		return
-	}
-
-	updatedProduct, err := h.Product.UpdateById(productId, updateProduct)
+	updatedProduct, err := h.Product.UpdateById(productId, productToUpdate)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
-	c.JSON(200, updatedProduct)
+
+	c.JSON(200, gin.H{"product": updatedProduct})
 }
 
 func (h *Handler) RemoveProductById(c *gin.Context) {
 	productId, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(400, gin.H{"error": "Invalid product id"})
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidProductId.Error()})
 		return
 	}
 
 	if err := h.Product.DeleteById(productId); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
+
 	c.Status(204)
 }

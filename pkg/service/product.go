@@ -1,52 +1,55 @@
 package service
 
-import "df-ecomm/pkg/model"
+import (
+	"gorm.io/gorm"
 
-type Product = model.Product
+	"df-ecomm/pkg/model"
+)
 
-var products []Product = []Product{
-	{Id: 1, Name: "Product 1", Price: 100},
-	{Id: 2, Name: "Product 2", Price: 200},
-	{Id: 3, Name: "Product 3", Price: 300},
-}
-
-func (r *Repository) GetAll() []Product {
-	return products
-}
-
-func (r *Repository) Create(product model.NewProduct) Product {
-	newProduct := Product{
-		Id:    products[len(products)-1].Id + 1,
-		Name:  product.Name,
-		Price: product.Price,
+func (r *Repository) GetAll() (products []Product, err error) {
+	if err = r.Db.Find(&products).Error; err != nil {
+		return []Product{}, err
 	}
-	products = append(products, newProduct)
-	return newProduct
+
+	return products, nil
 }
 
-func (r *Repository) UpdateById(productIdToUpdate int, updateProduct Product) (Product, error) {
-	for index, product := range products {
-		if product.Id == productIdToUpdate {
-			if updateProduct.Name != "" {
-				products[index].Name = updateProduct.Name
-			}
+func (r *Repository) Create(newProduct Product) (createdProduct Product, err error) {
+	createdProduct = Product{
+		Name:  newProduct.Name,
+		Price: newProduct.Price,
+	}
 
-			if updateProduct.Price >= 0 {
-				products[index].Price = updateProduct.Price
-			}
+	if err = r.Db.Create(&createdProduct).Error; err != nil {
+		return Product{}, err
+	}
 
-			return products[index], nil
+	return createdProduct, nil
+}
+
+func (r *Repository) UpdateById(productIdToUpdate int, productToUpdate Product) (updatedProduct Product, err error) {
+	if err = r.Db.First(&updatedProduct, productIdToUpdate).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return Product{}, model.ErrProductNotFound
 		}
+		return Product{}, err
 	}
-	return Product{}, model.ErrNotFound
+
+	if productToUpdate.Name != "" {
+		updatedProduct.Name = productToUpdate.Name
+	}
+
+	if productToUpdate.Price != 0 {
+		updatedProduct.Price = productToUpdate.Price
+	}
+
+	if err = r.Db.Save(&updatedProduct).Error; err != nil {
+		return Product{}, err
+	}
+
+	return updatedProduct, nil
 }
 
-func (r *Repository) DeleteById(productIdToDelete int) error {
-	for index, product := range products {
-		if product.Id == productIdToDelete {
-			products = append(products[:index], products[index+1:]...)
-			return nil
-		}
-	}
-	return model.ErrNotFound
+func (r *Repository) DeleteById(productIdToDelete int) (err error) {
+	return r.Db.Delete(&Product{}, productIdToDelete).Error
 }

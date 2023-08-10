@@ -1,0 +1,64 @@
+### JWT Authentication
+POST /auth
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "username": "root",
+    "password": "password"
+}
+
+### Retrieve a list of all products
+GET /products
+Host: localhost:8080
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6InJvb3QifQ.zdYQIwmAhwpAPrIiPg05Qc7jlyY7ZkzicJgSF_Apw0I
+
+### Create a new product
+POST /products
+Host: localhost:8080
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6InJvb3QifQ.zdYQIwmAhwpAPrIiPg05Qc7jlyY7ZkzicJgSF_Apw0I
+
+{
+    "name": "new product",
+    "price": 420
+}
+
+### Update a product's details
+PUT /products/1
+Host: localhost:8080
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6InJvb3QifQ.zdYQIwmAhwpAPrIiPg05Qc7jlyY7ZkzicJgSF_Apw0I
+Content-Type: application/json
+
+{
+    "name": "updated product"
+}
+
+### Delete a product by its ID
+DELETE /products/4
+Host: localhost:8080
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VybmFtZSI6InJvb3QifQ.zdYQIwmAhwpAPrIiPg05Qc7jlyY7ZkzicJgSF_Apw0I
+
+### Add items to the cart
+POST /cart/add
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "id": 1,
+    "quantity": 3
+}
+
+### Remove items from the cart
+DELETE /cart/remove
+Host: localhost:8080
+Content-Type: application/json
+
+{
+    "id": 1,
+    "quantity": 2
+}
+
+###  Checkout and clear the cart
+POST /cart/checkout
+Host: localhost:8080

@@ -6,21 +6,30 @@ import (
 	"df-ecomm/pkg/model"
 )
 
+type ItemToAdd struct {
+	ProductId uint `json:"id" binding:"required"`
+	Quantity  uint `json:"quantity" binding:"required"`
+}
+
+type ItemToRemove struct {
+	ProductId uint `json:"id" binding:"required"`
+}
+
+type Receipt struct {
+	Items []model.CartItem `json:"cart"`
+	Total uint             `json:"total"`
+}
+
 func (h *Handler) AddItem(c *gin.Context) {
-	var newItem model.ItemToAdd
-	if err := c.BindJSON(&newItem); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	var newItem ItemToAdd
+	if err := c.ShouldBindJSON(&newItem); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidCart.Error()})
 		return
 	}
 
-	if newItem.Quantity < 0 {
-		c.JSON(400, gin.H{"error": "Quantity must be greater than 0"})
-		return
-	}
-
-	cartItem, err := h.Cart.Add(newItem)
+	cartItem, err := h.Cart.Add(newItem.ProductId, newItem.Quantity)
 	if err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
@@ -28,14 +37,14 @@ func (h *Handler) AddItem(c *gin.Context) {
 }
 
 func (h *Handler) RemoveItem(c *gin.Context) {
-	var item model.ItemToRemove
-	if err := c.BindJSON(&item); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	var item ItemToRemove
+	if err := c.ShouldBindJSON(&item); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidCart.Error()})
 		return
 	}
 
-	if err := h.Cart.Remove(item); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := h.Cart.Remove(item.ProductId); err != nil {
+		c.Error(err)
 		return
 	}
 
@@ -43,6 +52,16 @@ func (h *Handler) RemoveItem(c *gin.Context) {
 }
 
 func (h *Handler) Checkout(c *gin.Context) {
-	receipt := h.Cart.Checkout()
+	cartItems, err := h.Cart.Checkout()
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
+	receipt := Receipt{Items: cartItems}
+	for _, item := range cartItems {
+		receipt.Total += item.Quantity * item.Product.Price
+	}
+
 	c.JSON(200, receipt)
 }

@@ -1,24 +1,32 @@
 package service
 
 import (
+	"gorm.io/gorm"
+
 	"df-ecomm/pkg/model"
 )
 
-type Repository struct{}
-
-type CartService interface {
-	Add(model.ItemToAdd) (model.CartItem, error)
-	Remove(model.ItemToRemove) error
-	Checkout() model.Receipt
+type Repository struct {
+	Db *gorm.DB
 }
 
+type Product = model.Product
+
+type CartItem = model.CartItem
+
 type ProductService interface {
-	GetAll() []model.Product
-	Create(model.NewProduct) model.Product
-	UpdateById(int, model.Product) (model.Product, error)
+	GetAll() ([]Product, error)
+	Create(Product) (Product, error)
+	UpdateById(int, Product) (Product, error)
 	DeleteById(int) error
 }
 
+type CartService interface {
+	Add(uint, uint) (CartItem, error)
+	Remove(uint) error
+	Checkout() ([]CartItem, error)
+}
+
 type UserService interface {
-	Login(model.Account, string) (model.User, error)
+	Login(model.Account, string) (string, error)
 }

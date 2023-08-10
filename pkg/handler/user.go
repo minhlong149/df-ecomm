@@ -8,16 +8,16 @@ import (
 
 func (h *Handler) Login(c *gin.Context) {
 	var account model.Account
-	if err := c.BindJSON(&account); err != nil {
-		c.JSON(400, gin.H{"error": err.Error()})
+	if err := c.ShouldBindJSON(&account); err != nil {
+		c.AbortWithStatusJSON(400, gin.H{"error": model.ErrInvalidCredentials.Error()})
 		return
 	}
 
-	user, err := h.User.Login(account, h.Config.SecretKey)
+	token, err := h.User.Login(account, h.Config.SecretKey)
 	if err != nil {
-		c.JSON(401, gin.H{"error": err.Error()})
+		c.Error(err)
 		return
 	}
 
-	c.JSON(200, user)
+	c.JSON(200, gin.H{"token": token})
 }
